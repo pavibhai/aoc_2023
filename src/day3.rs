@@ -85,7 +85,7 @@ pub fn part2(schematic: &Schematic) -> u32 {
   let mut gear_symbols: HashMap<XY, Vec<u32>> = HashMap::new();
   for (xy, c) in &schematic.symbols {
     if c == &'*' {
-      gear_symbols.insert(xy.clone(), Vec::new());
+      gear_symbols.insert(*xy, Vec::new());
     }
   }
 
@@ -135,13 +135,13 @@ pub fn generator(input: &str) -> Schematic {
         }
         '.' => {
           if !number.is_empty() {
-            numbers.push(number.clone());
+            numbers.push(number);
             number.clear();
           }
         }
         s => {
           if !number.is_empty() {
-            numbers.push(number.clone());
+            numbers.push(number);
             number.clear();
           }
           symbols.insert(XY::create(col, row), s);

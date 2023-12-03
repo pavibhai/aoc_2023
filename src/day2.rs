@@ -56,7 +56,7 @@ impl Game {
       game_splits.next().unwrap().parse().unwrap()
     };
     let reveals = splits.next().unwrap().split("; ")
-      .map(|line| Reveal::create(line))
+      .map(Reveal::create)
       .collect();
     Game {
       id,
@@ -79,11 +79,11 @@ impl Game {
 
 pub fn generator(input: &str) -> Vec<Game> {
   input.lines()
-    .map(|line| Game::create(line))
+    .map(Game::create)
     .collect()
 }
 
-pub fn part1(games: &Vec<Game>) -> u32 {
+pub fn part1(games: &[Game]) -> u32 {
   let max_reveal = Reveal {
     red: 12,
     green: 13,
@@ -97,7 +97,7 @@ pub fn part1(games: &Vec<Game>) -> u32 {
   }).sum()
 }
 
-pub fn part2(games: &Vec<Game>) -> u32 {
+pub fn part2(games: &[Game]) -> u32 {
   games.iter().map(|g| g.min_cubes().power()).sum()
 }
 
