@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 
-#[derive(Eq, Hash, PartialEq, Copy, Clone, Debug)]
+#[derive(Eq, Hash, PartialEq, Copy, Clone, Debug, PartialOrd, Ord)]
 pub struct XY {
   x: usize,
   y: usize,
@@ -57,20 +57,21 @@ impl Number {
 
 pub struct Schematic {
   numbers: Vec<Number>,
-  symbols: HashMap<XY, char>,
+  symbols: Vec<(XY, char)>,
 }
 
 pub fn part1(schematic: &Schematic) -> u32 {
+  let symbols: HashSet<XY> = schematic.symbols.iter().map(|(xy, _)| *xy).collect();
   schematic.numbers.iter().filter_map(|number| {
     for x in [number.start.x as i32 - 1, (number.start.x + number.chars) as i32] {
-      if x >= 0 && schematic.symbols.contains_key(&XY::create(x as usize, number.start.y)) {
+      if x >= 0 && symbols.contains(&XY::create(x as usize, number.start.y)) {
         return Some(number.value);
       }
     }
     for y in [number.start.y as i32 - 1, number.start.y as i32 + 1] {
       if y >= 0 {
         for x in (number.start.x as i32 - 1)..=(number.start.x + number.chars) as i32 {
-          if x >= 0 && schematic.symbols.contains_key(&XY::create(x as usize, y as usize)) {
+          if x >= 0 && symbols.contains(&XY::create(x as usize, y as usize)) {
             return Some(number.value);
           }
         }
@@ -81,46 +82,55 @@ pub fn part1(schematic: &Schematic) -> u32 {
 }
 
 pub fn part2(schematic: &Schematic) -> u32 {
-  // Check for gears
-  let mut gear_symbols: HashMap<XY, Vec<u32>> = HashMap::new();
-  for (xy, c) in &schematic.symbols {
-    if c == &'*' {
-      gear_symbols.insert(*xy, Vec::new());
-    }
-  }
+  // Retain only gear symbol
+  let gear_symbols: HashSet<XY> = schematic.symbols.iter()
+    .filter_map(|(xy, c)| if c == &'*' { Some(*xy) } else { None })
+    .collect();
 
+  let mut potential_gear_numbers = Vec::new();
   for number in &schematic.numbers {
     for x in [number.start.x as i32 - 1, (number.start.x + number.chars) as i32] {
       let xy = XY::create(x as usize, number.start.y);
-      if x >= 0 && schematic.symbols.contains_key(&xy) {
-        gear_symbols.entry(xy).and_modify(|e| e.push(number.value));
+      if x >= 0 && gear_symbols.contains(&xy) {
+        potential_gear_numbers.push((xy, number.value));
       }
     }
     for y in [number.start.y as i32 - 1, number.start.y as i32 + 1] {
       if y >= 0 {
         for x in (number.start.x as i32 - 1)..=(number.start.x + number.chars) as i32 {
           let xy = XY::create(x as usize, y as usize);
-          if x >= 0 && schematic.symbols.contains_key(&xy) {
-            gear_symbols.entry(xy).and_modify(|e| e.push(number.value));
+          if x >= 0 && gear_symbols.contains(&xy) {
+            potential_gear_numbers.push((xy, number.value));
           }
         }
       }
     }
   }
 
-  gear_symbols.iter().filter_map(|(_, v)| {
-    if v.len() == 2 {
-      Some(v[0] * v[1])
-    } else {
-      None
-    }
-  })
-    .sum()
+  potential_gear_numbers.sort_by_key(|(xy, _)| *xy);
+
+  let (s, _, _, p, cnt) = potential_gear_numbers.iter()
+    .fold((0, 0, 0, 1, 0),
+          |(s, x, y, p, cnt), (c_xy, c_n)| {
+            match c_xy {
+              xy if x == xy.x && y == xy.y => {
+                (s, x, y, p * c_n, cnt + 1)
+              }
+              xy if cnt == 2 => {
+                (s + p, xy.x, xy.y, *c_n, 1)
+              }
+              xy => {
+                (s, xy.x, xy.y, *c_n, 1)
+              }
+            }
+          });
+
+  if cnt == 2 { s + p } else { s }
 }
 
 
 pub fn generator(input: &str) -> Schematic {
-  let mut symbols = HashMap::new();
+  let mut symbols = Vec::new();
   let mut numbers = Vec::new();
   let mut number: Number = Number::empty();
 
@@ -144,7 +154,7 @@ pub fn generator(input: &str) -> Schematic {
             numbers.push(number);
             number.clear();
           }
-          symbols.insert(XY::create(col, row), s);
+          symbols.push((XY::create(col, row), s));
         }
       }
     }
@@ -187,8 +197,10 @@ mod tests {
     assert_eq!(Number { start: XY::create(0, 4), chars: 3, value: 617 },
                schematic.numbers[4]);
 
-    assert_eq!('*', *schematic.symbols.get(&XY::create(3, 1)).unwrap());
-    assert_eq!('#', *schematic.symbols.get(&XY::create(6, 3)).unwrap());
+    assert_eq!('*',
+               schematic.symbols.iter().find(|(xy, _)| xy.x == 3 && xy.y == 1).unwrap().1);
+    assert_eq!('#',
+               schematic.symbols.iter().find(|(xy, _)| xy.x == 6 && xy.y == 3).unwrap().1);
   }
 
   #[test]
