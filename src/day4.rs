@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use Ordering::{Less, Equal, Greater};
 
 fn extract_sorted_numbers(input: &str) -> Vec<u32> {
-  let mut numbers: Vec<u32> = input.split(' ')
+  let mut numbers: Vec<u32> = input.split_whitespace()
     .filter_map(|tok| {
       if tok.is_empty() { None } else { Some(tok.parse().unwrap()) }
     }).collect();
@@ -66,7 +66,7 @@ pub fn part2(cards: &[Card]) -> u32 {
   let mut final_counts = vec![1; winning_numbers.len()];
 
   for (idx, &win_cnt) in winning_numbers.iter().enumerate() {
-    for i in (idx + 1)..=(idx + win_cnt as usize).min(winning_numbers.len()) {
+    for i in (idx + 1)..(1 + idx + win_cnt as usize).min(winning_numbers.len()) {
       final_counts[i] += final_counts[idx];
     }
   }
@@ -108,5 +108,11 @@ mod tests {
   fn test_part2() {
     let cards = generator(&input());
     assert_eq!(30, part2(&cards));
+  }
+
+  #[test]
+  fn test_bound() {
+    let cards = generator("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53");
+    assert_eq!(1, part2(&cards));
   }
 }
