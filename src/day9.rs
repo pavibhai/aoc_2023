@@ -51,20 +51,20 @@ impl HistoryLine {
   }
 }
 
-pub fn part1(history_lines: &Vec<Vec<i32>>) -> i64 {
+fn compute(history_lines: &Vec<Vec<i32>>, reverse: bool) -> i64 {
   history_lines.iter().map(|nums| {
-    let hl = HistoryLine::from_nums(nums, false);
+    let hl = HistoryLine::from_nums(nums, reverse);
     hl.next_value() as i64
   })
     .sum()
 }
 
+pub fn part1(history_lines: &Vec<Vec<i32>>) -> i64 {
+  compute(history_lines, false)
+}
+
 pub fn part2(history_lines: &Vec<Vec<i32>>) -> i64 {
-  history_lines.iter().map(|nums| {
-    let hl = HistoryLine::from_nums(nums, true);
-    hl.next_value() as i64
-  })
-    .sum()
+  compute(history_lines, true)
 }
 
 #[cfg(test)]
