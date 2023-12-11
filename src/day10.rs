@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use crate::day10::Direction::{EAST, NORTH, SOUTH, WEST};
 
 #[derive(Eq, PartialEq, Copy, Clone)]
@@ -164,18 +163,18 @@ pub fn part1(puzzle: &(Field, Vec<XY>)) -> u32 {
 pub fn part2(puzzle: &(Field, Vec<XY>)) -> u32 {
   // compute area
   let field = &puzzle.0;
-  let perimeter: HashSet<&XY> = HashSet::from_iter(puzzle.1.iter());
+  let mut perimeter: Vec<Vec<bool>> = vec![vec![false; field.width()]; field.map.len()];
   let mut x_min = field.width();
   let mut x_max = 0;
   let mut y_min = field.map.len();
   let mut y_max = 0;
 
-  // Compute max bounds
-  for xy in &perimeter {
+  for xy in &puzzle.1 {
     x_min = x_min.min(xy.x);
     x_max = x_max.max(xy.x);
     y_min = y_min.min(xy.y);
     y_max = y_max.max(xy.y);
+    perimeter[xy.y][xy.x] = true;
   }
 
   let mut area = 0;
@@ -186,9 +185,8 @@ pub fn part2(puzzle: &(Field, Vec<XY>)) -> u32 {
     prev = &GROUND;
     include = false;
     for x in x_min..=x_max {
-      let xy = XY { x, y };
       curr = field.connects(&x, &y);
-      if perimeter.contains(&xy) {
+      if perimeter[y][x] {
         match curr {
           &NORTH_SOUTH => {
             include = !include;
