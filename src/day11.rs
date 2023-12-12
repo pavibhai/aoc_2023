@@ -13,16 +13,14 @@ pub struct Image {
 }
 
 fn distance_between(start: usize, end: usize, empty_space: &[bool]) -> (u64, u64) {
-  let mut normal_moves = 0_u64;
-  let mut empty_moves = 0_u64;
-  for i in start..end {
-    if empty_space[i] {
-      empty_moves += 1;
-    } else {
-      normal_moves += 1;
-    }
+  if start < end {
+    empty_space[start+1..end].iter().fold((1, 0), |(n, e), v| {
+      if *v {(n, e +1)} else {(n+1, e)}
+    })
+  } else {
+    (0, 0)
   }
-  (normal_moves, empty_moves)
+
 }
 
 impl Image {
@@ -44,8 +42,16 @@ impl Image {
     (normal_moves, empty_moves)
   }
   fn distance_between(&self, g1: &XY, g2: &XY) -> (u64, u64) {
-    let (normal_moves, empty_moves) = distance_between(g1.x.min(g2.x), g1.x.max(g2.x), &self.empty_cols);
-    let (n, e) = distance_between(g1.y.min(g2.y), g1.y.max(g2.y), &self.empty_rows);
+    let (normal_moves, empty_moves) = if g1.x < g2.x {
+      distance_between(g1.x, g2.x, &self.empty_cols)
+    } else {
+      distance_between(g2.x, g1.x, &self.empty_cols)
+    };
+    let (n, e) = if g1.y < g2. y {
+      distance_between(g1.y, g2.y, &self.empty_rows)
+    } else {
+      distance_between(g2.y, g1.y, &self.empty_rows)
+    };
 
     (normal_moves + n, empty_moves + e)
   }
