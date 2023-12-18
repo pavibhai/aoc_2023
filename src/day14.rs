@@ -84,10 +84,6 @@ impl Platform {
     }).collect()
   }
 
-  fn north_weight(&self) -> usize {
-    north_weight(&self.north_weights())
-  }
-
   fn tilt_north(&mut self) -> Vec<usize> {
     self.tilt_north_south(false)
   }
@@ -217,7 +213,7 @@ pub fn part2(platform: &Platform) -> usize {
 
 #[cfg(test)]
 mod tests {
-  use crate::day14::{generator, part1, part2};
+  use crate::day14::{generator, north_weight, part1, part2};
   use crate::day14::Space::{EMPTY, ROUND};
 
   fn input() -> String {
@@ -245,7 +241,7 @@ O.#..O.#.#
     let mut p = generator(&input());
     assert_eq!(136, part1(&p));
     p.tilt_north_south(false);
-    assert_eq!(136, p.north_weight());
+    assert_eq!(136, north_weight(&p.north_weights()));
   }
 
   #[test]
