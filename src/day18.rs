@@ -142,7 +142,7 @@ impl DigPlan {
       if end_idx > start_idx {
         row_include += (x_values[end_idx] - x_values[start_idx] + 1) as u64;
       }
-      start_idx = end_idx;
+      start_idx = end_idx + 1;
     }
     row_include
   }
