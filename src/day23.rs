@@ -43,12 +43,6 @@ struct XY {
   y: i32,
 }
 
-impl XY {
-  fn manhattan_distance_to(&self, xy: &XY) -> u32 {
-    xy.x.abs_diff(self.x) + xy.y.abs_diff(self.y)
-  }
-}
-
 #[derive(Clone)]
 struct Hike {
   pos: XY,
@@ -151,7 +145,7 @@ impl TrailMap {
       if curr.pos == self.end {
         if curr.len() > max_len {
           max_len = max_len.max(curr.len());
-          for (p, (d, s)) in curr.visited {
+          for (p, (_, s)) in curr.visited {
             if maxes[p.y as usize][p.x as usize] > -1 {
               maxes[p.y as usize][p.x as usize] = (s as i32).max(maxes[p.y as usize][p.x as usize]);
             } else {
@@ -206,7 +200,7 @@ impl TrailMap {
           e.visit(nexts.pop().unwrap());
           stack.push(e);
         }
-        n => {
+        _ => {
           // Mark vertex
           g.get_id(&e.curr);
           g.record_edge(&e.start, &e.curr, e.len());
@@ -321,14 +315,6 @@ impl Edge {
     nexts.sort();
     nexts.dedup();
     nexts
-  }
-}
-
-fn order(xy1: XY, xy2: XY) -> (XY, XY) {
-  if xy1.x < xy2.x || (xy1.x == xy2.x && xy1.y < xy2.y) {
-    (xy1, xy2)
-  } else {
-    (xy2, xy1)
   }
 }
 
