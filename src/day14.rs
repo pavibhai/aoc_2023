@@ -324,7 +324,6 @@ OO....OO..
 
     let mut p = generator(&input());
     for _ in 0..11 {
-      //println!("{p}\n");
       p.cycle();
     }
   }

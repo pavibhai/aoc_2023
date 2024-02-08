@@ -134,7 +134,6 @@ fn count_possibilities_w_cache(pr: &PumpRow, group_starts: &Vec<Vec<usize>>, lev
 fn count_possibilities(pr: &PumpRow, group_starts: &Vec<Vec<usize>>, level: usize, min_value: usize,
                        cache: &mut HashMap<(usize, usize), u64>) -> u64 {
   let start = group_starts[level].binary_search(&min_value).unwrap_or_else(|i| i);
-  //println!("Processing {level}:{start}");
 
   if start >= group_starts[level].len() {
     return 0;
@@ -175,7 +174,6 @@ pub fn generator(input: &str) -> Vec<PumpRow> {
 pub fn part1(rows: &[PumpRow]) -> u64 {
   rows.iter().map(|pr| {
     let p = pr.count_possibilities();
-    //println!("{pr} - {p}");
     p
   }).sum()
 }

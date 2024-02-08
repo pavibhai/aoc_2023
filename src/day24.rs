@@ -133,15 +133,9 @@ impl Hail {
   }
 
   fn compute_dx_dy_dz(&self) -> (Possibility, Possibility, Possibility) {
-    println!("For dx");
     let dx_possibilities = self.compute_min_possibilities(X);
-    println!("{:?}", dx_possibilities);
-    println!("For dy");
     let dy_possibilities = self.compute_min_possibilities(Y);
-    println!("{:?}", dy_possibilities);
-    println!("For dz");
     let dz_possibilities = self.compute_min_possibilities(Z);
-    println!("{:?}", dz_possibilities);
     (dx_possibilities, dy_possibilities, dz_possibilities)
   }
 
@@ -183,7 +177,6 @@ impl Hail {
         }
       }
     }
-    println!("Possibilities: {:?}", possibilities);
     assert_eq!(1, possibilities.len());
     let s = possibilities.drain().next().unwrap();
     s
