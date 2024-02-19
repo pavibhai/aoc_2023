@@ -99,9 +99,9 @@ impl TrailMap {
     let map: Vec<Vec<Block>> = input.lines()
       .map(|l| l.chars().map(Block::from).collect())
       .collect();
-    let start = XY { x: (map[0].iter().position(|b| b == &Path).unwrap()) as i32, y: 0 };
+    let start = XY { x: map[0].iter().position(|b| b == &Path).unwrap() as i32, y: 0 };
     let end = XY {
-      x: (map[map.len() - 1].iter().position(|b| b == &Path).unwrap()) as i32,
+      x: map[map.len() - 1].iter().position(|b| b == &Path).unwrap() as i32,
       y: (map.len() - 1) as i32,
     };
     TrailMap { map, start, end }
@@ -128,7 +128,6 @@ impl TrailMap {
   }
 
   fn walk(&self, ignore_slopes: bool) -> u32 {
-    let mut maxes: Vec<Vec<i32>> = vec![vec![-1; self.width()]; self.height()];
     let mut stack: Vec<Hike> = Vec::new();
     let mut visited = HashMap::new();
     visited.insert(self.start.clone(), (0, 0));
@@ -140,27 +139,19 @@ impl TrailMap {
 
     while !stack.is_empty() {
       let curr = stack.pop().unwrap();
-      let steps = curr.len() as i32;
 
       if curr.pos == self.end {
         if curr.len() > max_len {
           max_len = max_len.max(curr.len());
-          for (p, (_, s)) in curr.visited {
-            if maxes[p.y as usize][p.x as usize] > -1 {
-              maxes[p.y as usize][p.x as usize] = (s as i32).max(maxes[p.y as usize][p.x as usize]);
-            } else {
-              maxes[p.y as usize][p.x as usize] = s as i32;
-            }
-          }
         }
         continue;
       }
 
       for (d, (x, y)) in NEIGHBORS.iter().enumerate() {
         let mut next = curr.clone();
-        if maxes[curr.pos.y as usize][curr.pos.x as usize] > steps {
+/*        if maxes[curr.pos.y as usize][curr.pos.x as usize] > steps {
           continue;
-        }
+        }*/
         if !next.move_by(x, y, self, ignore_slopes, d) { continue; }
         stack.push(next);
       }
@@ -188,7 +179,7 @@ impl TrailMap {
         continue;
       }
 
-      let possibilities = self.paths(&e.curr);
+      let mut possibilities = self.paths(&e.curr);
       let mut nexts = e.nexts(self);
       match possibilities {
         1 => {
@@ -196,8 +187,12 @@ impl TrailMap {
           g.record_edge(&e.start, &e.curr, e.len());
         }
         2 => {
-          // Extend the edge
-          e.visit(nexts.pop().unwrap());
+          while possibilities == 2 {
+            // Extend the edge
+            e.visit(nexts.pop().unwrap());
+            possibilities = self.paths(&e.curr);
+            nexts = e.nexts(self);
+          }
           stack.push(e);
         }
         _ => {
@@ -231,7 +226,7 @@ impl Graph {
     if !self.vertices.contains_key(xy) {
       self.vertices.insert(xy.clone(), self.vertices.len());
     }
-    *self.vertices.get(&xy).unwrap()
+    *self.vertices.get(xy).unwrap()
   }
 
   fn record_edge(&mut self, xy1: &XY, xy2: &XY, len: u32) {
@@ -297,9 +292,9 @@ impl Edge {
       || next.y < 0 || next.y >= tm.height() as i32
       || tm.map[next.y as usize][next.x as usize] == Forest
       || self.visited.contains(&next) {
-      return None;
+      None
     } else {
-      return Some(next);
+      Some(next)
     }
   }
 
@@ -309,11 +304,9 @@ impl Edge {
   }
 
   fn nexts(&self, tm: &TrailMap) -> Vec<XY> {
-    let mut nexts: Vec<XY> = NEIGHBORS.iter().filter_map(|(x, y)| {
+    let nexts: Vec<XY> = NEIGHBORS.iter().filter_map(|(x, y)| {
       self.move_by(x, y, tm)
     }).collect();
-    nexts.sort();
-    nexts.dedup();
     nexts
   }
 }
