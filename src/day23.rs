@@ -8,7 +8,7 @@ pub fn generator(input: &str) -> TrailMap {
 }
 
 pub fn part1(map: &TrailMap) -> u32 {
-  map.walk(false)
+  map.walk()
 }
 
 pub fn part2(map: &TrailMap) -> u32 {
@@ -46,20 +46,20 @@ struct XY {
 #[derive(Clone)]
 struct Hike {
   pos: XY,
-  visited: HashMap<XY, (usize, u32)>,
+  visited: HashSet<XY>,
 }
 
 impl Hike {
-  fn mark_visited(&mut self, dir: usize) -> bool {
-    if self.visited.contains_key(&self.pos) {
+  fn mark_visited(&mut self) -> bool {
+    if self.visited.contains(&self.pos) {
       false
     } else {
-      self.visited.insert(self.pos.clone(), (dir, self.visited.len() as u32));
+      self.visited.insert(self.pos.clone());
       true
     }
   }
 
-  fn move_by(&mut self, dx: &i32, dy: &i32, tm: &TrailMap, ignore_slopes: bool, dir: usize) -> bool {
+  fn move_by(&mut self, dx: &i32, dy: &i32, tm: &TrailMap) -> bool {
     self.pos.x += *dx;
     self.pos.y += *dy;
     if self.pos.x < 0 || self.pos.x >= tm.width() as i32
@@ -68,14 +68,14 @@ impl Hike {
       return false;
     }
 
-    let mark = self.mark_visited(dir);
-    if !mark || ignore_slopes {
+    let mark = self.mark_visited();
+    if !mark {
       return mark;
     }
 
     match &tm.map[self.pos.y as usize][self.pos.x as usize] {
       Slope(dx, dy) => {
-        self.move_by(dx, dy, tm, ignore_slopes, dir)
+        self.move_by(dx, dy, tm)
       }
       _ => {
         true
@@ -127,10 +127,10 @@ impl TrailMap {
       .count()
   }
 
-  fn walk(&self, ignore_slopes: bool) -> u32 {
+  fn walk(&self) -> u32 {
     let mut stack: Vec<Hike> = Vec::new();
-    let mut visited = HashMap::new();
-    visited.insert(self.start.clone(), (0, 0));
+    let mut visited = HashSet::new();
+    visited.insert(self.start.clone());
     stack.push(Hike {
       pos: self.start.clone(),
       visited,
@@ -147,12 +147,12 @@ impl TrailMap {
         continue;
       }
 
-      for (d, (x, y)) in NEIGHBORS.iter().enumerate() {
+      for (x, y) in NEIGHBORS.iter() {
         let mut next = curr.clone();
 /*        if maxes[curr.pos.y as usize][curr.pos.x as usize] > steps {
           continue;
         }*/
-        if !next.move_by(x, y, self, ignore_slopes, d) { continue; }
+        if !next.move_by(x, y, self) { continue; }
         stack.push(next);
       }
     }
