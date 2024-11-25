@@ -115,16 +115,26 @@ impl TrailMap {
     self.map[0].len()
   }
 
-  fn paths(&self, xy: &XY) -> usize {
-    NEIGHBORS.iter()
-      .filter(|(x, y)| {
-        let x = xy.x + x;
-        let y = xy.y + y;
-        x > -1 && x < self.width() as i32
-          && y > -1 && y < self.height() as i32
-          && self.map[y as usize][x as usize] != Forest
-      })
-      .count()
+  fn single_next(&self, xy: &XY, visited: &HashSet<XY>) -> Option<XY> {
+    let mut result: Option<XY> = None;
+
+    for (x, y) in NEIGHBORS.iter() {
+      let x = xy.x + x;
+      let y = xy.y + y;
+      if x > -1 && x < self.width() as i32
+        && y > -1 && y < self.height() as i32
+        && self.map[y as usize][x as usize] != Forest
+        && !visited.contains(&XY{x, y}) {
+        if result.is_none() {
+          result = Some(XY{x, y});
+        } else {
+          result = None;
+          break;
+        }
+      }
+    }
+
+    result
   }
 
   fn walk(&self) -> u32 {
@@ -138,7 +148,19 @@ impl TrailMap {
     let mut max_len = 0_u32;
 
     while !stack.is_empty() {
-      let curr = stack.pop().unwrap();
+      let mut curr = stack.pop().unwrap();
+
+      // If we have a single path, move forward and avoid cloning
+      loop {
+        match self.single_next(&curr.pos, &curr.visited) {
+          None => break,
+          Some(n) => {
+            if !curr.move_by(&(n.x -curr.pos.x), &(n.y - curr.pos.y), self) {
+              break;
+            }
+          }
+        }
+      }
 
       if curr.pos == self.end {
         if curr.len() > max_len {
@@ -149,9 +171,6 @@ impl TrailMap {
 
       for (x, y) in NEIGHBORS.iter() {
         let mut next = curr.clone();
-/*        if maxes[curr.pos.y as usize][curr.pos.x as usize] > steps {
-          continue;
-        }*/
         if !next.move_by(x, y, self) { continue; }
         stack.push(next);
       }
@@ -168,6 +187,7 @@ impl TrailMap {
       curr: self.start.clone(),
       visited: HashSet::from([self.start.clone()]),
     };
+    // As this is a single trail block
     e.visit(e.nexts(self).pop().unwrap());
 
     let mut stack: Vec<Edge> = vec![e];
@@ -179,24 +199,24 @@ impl TrailMap {
         continue;
       }
 
-      let mut possibilities = self.paths(&e.curr);
       let mut nexts = e.nexts(self);
+      let mut possibilities = nexts.len();
       match possibilities {
-        1 => {
-          // Mark edge
+        0 => {
+          // Complete edge
           g.record_edge(&e.start, &e.curr, e.len());
         }
-        2 => {
-          while possibilities == 2 {
-            // Extend the edge
+        1 => {
+          // Extend the edge
+          while possibilities == 1 {
             e.visit(nexts.pop().unwrap());
-            possibilities = self.paths(&e.curr);
             nexts = e.nexts(self);
+            possibilities = nexts.len();
           }
           stack.push(e);
         }
         _ => {
-          // Mark vertex
+          // As we have multiple paths, mark the vertex
           g.get_id(&e.curr);
           g.record_edge(&e.start, &e.curr, e.len());
           for next in nexts {

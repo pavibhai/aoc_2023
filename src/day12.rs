@@ -123,7 +123,7 @@ impl PumpRow {
 fn count_possibilities_w_cache(pr: &PumpRow, group_starts: &Vec<Vec<usize>>, level: usize, min_value: usize,
                                cache: &mut HashMap<(usize, usize), u64>) -> u64 {
   if let Some(sum) = cache.get(&(level, min_value)) {
-    return *sum;
+    *sum
   } else {
     let sum = count_possibilities(pr, group_starts, level, min_value, cache);
     cache.insert((level, min_value), sum);

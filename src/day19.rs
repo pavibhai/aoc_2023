@@ -174,17 +174,17 @@ impl Outcome {
 }
 
 enum Condition {
-  LessThan(char, Box<dyn Fn(&mut Rating) -> &mut Range>, u32),
-  GreaterThan(char, Box<dyn Fn(&mut Rating) -> &mut Range>, u32),
+  LessThan(Box<dyn Fn(&mut Rating) -> &mut Range>, u32),
+  GreaterThan(Box<dyn Fn(&mut Rating) -> &mut Range>, u32),
   Else,
 }
 
 impl Condition {
   fn from(input: &str) -> Condition {
     match (input.chars().nth(0).unwrap(), input.chars().nth(1).unwrap()) {
-      (c, '<') => LessThan(c, Rating::get_fn(&c),
+      (c, '<') => LessThan(Rating::get_fn(&c),
                            input[2..].parse().unwrap()),
-      (c, '>') => GreaterThan(c, Rating::get_fn(&c),
+      (c, '>') => GreaterThan(Rating::get_fn(&c),
                               input[2..].parse().unwrap()),
       _ => Else,
     }
@@ -193,7 +193,7 @@ impl Condition {
   fn take_accept(&self, rr: &mut Rating) -> Option<Rating> {
     let mut r = *rr;
     match self {
-      LessThan(_,  f, v) => {
+      LessThan(f, v) => {
         let category = f(rr);
         let accept_category = f(&mut r);
         if &category.low >= v {
@@ -207,7 +207,7 @@ impl Condition {
           Some(r)
         }
       }
-      GreaterThan(_, f, v) => {
+      GreaterThan(f, v) => {
         let category = f(rr);
         let accept_category = f(&mut r);
         if &category.high <= v {
