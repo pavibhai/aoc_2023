@@ -35,11 +35,11 @@ struct Possibility {
 }
 
 impl Possibility {
-  fn tgt_stone<'a>(&'a self, hail: &'a Hail) -> &Stone {
+  fn tgt_stone<'a>(&'a self, hail: &'a Hail) -> &'a Stone {
     &hail.stones[self.tgt]
   }
 
-  fn src_stone<'a>(&'a self, hail: &'a Hail) -> &Stone {
+  fn src_stone<'a>(&'a self, hail: &'a Hail) -> &'a Stone {
     &hail.stones[self.src]
   }
 }

@@ -282,12 +282,13 @@ impl Graph {
         max_dist = max_dist.max(d);
         continue;
       }
-      for (n, d_to_n) in &paths[v] {
-        if visited[*n] { continue; }
-        let mut visited = visited.clone();
-        visited[*n] = true;
-        stack.push((*n, d + d_to_n, visited));
-      }
+      paths[v].iter().for_each(|(n, d_to_n)| {
+        if !visited[*n] {
+          let mut visited = visited.clone();
+          visited[*n] = true;
+          stack.push((*n, d + d_to_n, visited));
+        }
+      });
     }
     max_dist
   }
